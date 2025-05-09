@@ -12,8 +12,6 @@ import {
   getBorrowRecordsByUser,
   getInventoryItemById,
   returnBorrowedItem,
-  getBorrowRecords,
-  getInventoryItems,
 } from "@/lib/data"
 import { toast } from "@/hooks/use-toast"
 import { BarcodePrintModal } from "@/components/barcode-print-modal"
@@ -32,18 +30,14 @@ export default function BorrowingHistory({ userEmail }: BorrowingHistoryProps) {
   const [error, setError] = useState<string | null>(null)
   const [printBarcodeModalOpen, setPrintBarcodeModalOpen] = useState(false)
   const [selectedRecordForBarcode, setSelectedRecordForBarcode] = useState<EnhancedBorrowRecord | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [borrowRecords, setBorrowRecords] = useState<BorrowRecord[]>([])
-  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([])
 
   const fetchRecords = async () => {
     try {
       setLoading(true)
       setError(null)
 
-      // Get borrow records asynchronously
+      // Get borrow records for this user
       const userRecords = await getBorrowRecordsByUser(userEmail)
-
       console.log("User email:", userEmail)
       console.log("Found records:", userRecords.length)
 
@@ -51,16 +45,24 @@ export default function BorrowingHistory({ userEmail }: BorrowingHistoryProps) {
       const enhancedRecords: EnhancedBorrowRecord[] = []
 
       for (const record of userRecords) {
-        const item = await getInventoryItemById(record.itemId)
-        enhancedRecords.push({
-          ...record,
-          item,
-        })
+        try {
+          const item = await getInventoryItemById(record.itemId)
+          enhancedRecords.push({
+            ...record,
+            item,
+          })
+        } catch (itemError) {
+          console.error(`Error fetching item ${record.itemId}:`, itemError)
+          // Still add the record even if we couldn't get the item details
+          enhancedRecords.push({
+            ...record,
+            item: undefined,
+          })
+        }
       }
 
       // Sort by date, most recent first
       enhancedRecords.sort((a, b) => b.borrowDate.getTime() - a.borrowDate.getTime())
-
       setRecords(enhancedRecords)
     } catch (err) {
       console.error("Error fetching borrowing records:", err)
@@ -71,31 +73,8 @@ export default function BorrowingHistory({ userEmail }: BorrowingHistoryProps) {
   }
 
   useEffect(() => {
-    const loadBorrowingData = async () => {
-      try {
-        setIsLoading(true)
-
-        // Get data directly from Supabase
-        const records = await getBorrowRecords()
-        setBorrowRecords(records)
-
-        // Also load inventory items for reference
-        const items = await getInventoryItems()
-        setInventoryItems(items)
-      } catch (error) {
-        console.error("Error loading borrowing data:", error)
-        toast({
-          title: "Error",
-          description: "Failed to load borrowing history. Please try again.",
-          variant: "destructive",
-        })
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    loadBorrowingData()
-  }, [])
+    fetchRecords()
+  }, [userEmail])
 
   const handleReturn = async (recordId: string) => {
     try {
@@ -149,7 +128,7 @@ export default function BorrowingHistory({ userEmail }: BorrowingHistoryProps) {
     setPrintBarcodeModalOpen(true)
   }
 
-  if (loading || isLoading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
         <motion.div

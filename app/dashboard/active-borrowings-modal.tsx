@@ -7,10 +7,9 @@ import { motion } from "framer-motion"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { getActiveBorrowings, getInventoryItemById, getUserByEmail, getInventoryItems } from "@/lib/data"
+import { getActiveBorrowings, getInventoryItemById, getUserByEmail } from "@/lib/data"
 import { UserIcon } from "lucide-react"
 import type { BorrowRecord, User as UserType } from "@/lib/data"
-import { toast } from "@/components/ui/use-toast"
 
 interface ActiveBorrowingsModalProps {
   open: boolean
@@ -27,64 +26,6 @@ export default function ActiveBorrowingsModal({ open, onClose }: ActiveBorrowing
   const [borrowings, setBorrowings] = useState<BorrowRecord[]>([])
   const [inventoryItems, setInventoryItems] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(false)
-
-  // Fetch active borrowings when the component mounts or when the modal opens
-  useEffect(() => {
-    const loadActiveBorrowings = async () => {
-      try {
-        setIsLoading(true)
-
-        // Get active borrowings directly from Supabase
-        const activeBorrowings = await getActiveBorrowings()
-        setBorrowings(activeBorrowings)
-
-        // Also load inventory items for reference
-        const items = await getInventoryItems()
-        setInventoryItems(items)
-      } catch (error) {
-        console.error("Error loading active borrowings:", error)
-        toast({
-          title: "Error",
-          description: "Failed to load active borrowings. Please try again.",
-          variant: "destructive",
-        })
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    loadActiveBorrowings()
-  }, [open])
-
-  // Filter borrowings based on search and user filter
-  const filteredBorrowings = borrowings.filter((record) => {
-    // We'll fetch item and user details on demand for each record
-    const matchesSearch =
-      !searchTerm ||
-      record.itemId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      record.userEmail.toLowerCase().includes(searchTerm.toLowerCase())
-
-    const matchesUser = !userFilter || record.userEmail === userFilter
-
-    return matchesSearch && matchesUser
-  })
-
-  // Format date for display
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    }).format(date)
-  }
-
-  // Calculate days borrowed
-  const calculateDaysBorrowed = (borrowDate: Date) => {
-    const today = new Date()
-    const diffTime = Math.abs(today.getTime() - borrowDate.getTime())
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    return diffDays
-  }
 
   useEffect(() => {
     async function fetchData() {
@@ -122,6 +63,36 @@ export default function ActiveBorrowingsModal({ open, onClose }: ActiveBorrowing
 
     fetchData()
   }, [open])
+
+  // Filter borrowings based on search and user filter
+  const filteredBorrowings = activeBorrowings.filter((record) => {
+    // We'll fetch item and user details on demand for each record
+    const matchesSearch =
+      !searchTerm ||
+      record.itemId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      record.userEmail.toLowerCase().includes(searchTerm.toLowerCase())
+
+    const matchesUser = !userFilter || record.userEmail === userFilter
+
+    return matchesSearch && matchesUser
+  })
+
+  // Format date for display
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    }).format(date)
+  }
+
+  // Calculate days borrowed
+  const calculateDaysBorrowed = (borrowDate: Date) => {
+    const today = new Date()
+    const diffTime = Math.abs(today.getTime() - borrowDate.getTime())
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    return diffDays
+  }
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -183,7 +154,7 @@ export default function ActiveBorrowingsModal({ open, onClose }: ActiveBorrowing
             </div>
           </div>
 
-          {isLoading ? (
+          {loading ? (
             <div className="py-12 text-center">
               <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
                 <Loader2 className="h-8 w-8 text-primary animate-spin" />
