@@ -916,7 +916,7 @@ export default function InventoryManagement() {
       <Tabs defaultValue="tools" className="w-full" onValueChange={(value) => setActiveTab(value)}>
         <TabsList className="mb-4">
           <TabsTrigger value="tools" className="transition-all">
-            Tools
+            Alat
           </TabsTrigger>
           <TabsTrigger value="materials" className="transition-all">
             Materials

@@ -1988,37 +1988,13 @@ export default function AdminPanel() {
 
       {/* Edit User Dialog */}
       <Dialog open={editUserDialog} onOpenChange={setEditUserDialog}>
-        <DialogContent className="sm:max-w-[500px] max-h-[90vh] p-0 overflow-hidden">
-          <DialogHeader className="p-4 sm:p-6 pb-0 sm:pb-0">
+        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="p-4 sm:p-6 pb-2">
             <DialogTitle>Edit Pengguna</DialogTitle>
             <DialogDescription>Perbarui informasi pengguna.</DialogDescription>
           </DialogHeader>
-          <div className="flex justify-end px-4 sm:px-6">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setEditUserDialog(false)}
-              className="flex items-center gap-1 text-muted-foreground"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="lucide lucide-x"
-              >
-                <path d="M18 6 6 18" />
-                <path d="m6 6 12 12" />
-              </svg>
-              Tutup
-            </Button>
-          </div>
-          <div className="overflow-y-auto px-4 sm:px-6 py-4 max-h-[60vh] custom-scrollbar">
+
+          <div className="px-4 sm:px-6 py-4">
             <div className="grid gap-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -2061,7 +2037,7 @@ export default function AdminPanel() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="edit-password">Kata Sandi (kosongkan untuk mempertahankan yang sekarang)</Label>
+                  <Label htmlFor="edit-password">Kata Sandi (kosongkan jika tidak diubah)</Label>
                   <Input
                     id="edit-password"
                     type="password"
@@ -2076,7 +2052,7 @@ export default function AdminPanel() {
                     id="edit-nip"
                     value={editUser.nip}
                     onChange={(e) => setEditUser({ ...editUser, nip: e.target.value })}
-                    placeholder="Enter employee ID"
+                    placeholder="Masukkan ID karyawan"
                   />
                 </div>
               </div>
@@ -2096,12 +2072,13 @@ export default function AdminPanel() {
                     id="edit-address"
                     value={editUser.address}
                     onChange={(e) => setEditUser({ ...editUser, address: e.target.value })}
-                    placeholder="Enter address"
+                    placeholder="Masukkan alamat"
                   />
                 </div>
               </div>
             </div>
           </div>
+
           <DialogFooter className="p-4 sm:p-6 border-t">
             <div className="flex flex-col sm:flex-row gap-2 w-full">
               <Button variant="outline" onClick={() => setEditUserDialog(false)} className="w-full sm:w-auto">
