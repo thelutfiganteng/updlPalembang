@@ -1455,7 +1455,7 @@ export default function AdminPanel() {
       </div>
 
       {/* Debug Information (only visible in development) */}
-      {process.env.NODE_ENV === "development" && (
+      {/* {process.env.NODE_ENV === "development" && (
         <Alert className="mt-4">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Debug Information</AlertTitle>
@@ -1476,7 +1476,7 @@ export default function AdminPanel() {
             </div>
           </AlertDescription>
         </Alert>
-      )}
+      )} */}
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteUserDialog} onOpenChange={setDeleteUserDialog}>
