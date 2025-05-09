@@ -4,201 +4,177 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { motion } from "framer-motion"
-import { Eye, EyeOff, LogIn } from "lucide-react"
 import Link from "next/link"
+import { Loader2 } from "lucide-react"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { toast } from "@/hooks/use-toast"
 import { authenticateUser } from "@/lib/data"
 
 export default function LoginPage() {
-  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const [loginMessage, setLoginMessage] = useState<string | null>(null)
+  const [error, setError] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [message, setMessage] = useState("")
+  const router = useRouter()
 
   useEffect(() => {
-    // Check if there's a message from another page (like profile)
-    const message = sessionStorage.getItem("loginMessage")
-    if (message) {
-      setLoginMessage(message)
-      // Clear the message so it doesn't show again on refresh
-      sessionStorage.removeItem("loginMessage")
+    // Check if there's a message in sessionStorage (e.g., from profile page redirect)
+    const loginMessage = sessionStorage.getItem("loginMessage")
+    if (loginMessage) {
+      setMessage(loginMessage)
+      sessionStorage.removeItem("loginMessage") // Clear the message after displaying it
     }
-
-    // Check if user is already logged in
-    const userData = localStorage.getItem("currentUser")
-    if (userData) {
-      try {
-        const user = JSON.parse(userData)
-        if (user && user.email) {
-          router.push("/dashboard")
-        } else {
-          // Invalid user data, clear it
-          localStorage.removeItem("currentUser")
-        }
-      } catch (err) {
-        // Invalid JSON, clear it
-        localStorage.removeItem("currentUser")
-      }
-    }
-  }, [router])
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
+    setError("")
+    setIsLoading(true)
 
     try {
-      // Validate input
-      if (!email || !password) {
-        toast({
-          title: "Error",
-          description: "Email dan password harus diisi",
-          variant: "destructive",
-        })
-        return
-      }
-
-      // Authenticate user
       const user = await authenticateUser(email, password)
 
       if (user) {
-        // Ensure user has email before storing
-        if (!user.email) {
-          throw new Error("Invalid user data: missing email")
-        }
-
-        // Store user in localStorage
+        // Store user info in localStorage
         localStorage.setItem("currentUser", JSON.stringify(user))
-
-        toast({
-          title: "Login Berhasil",
-          description: `Selamat datang, ${user.name || email}!`,
-        })
 
         // Redirect to dashboard
         router.push("/dashboard")
       } else {
-        toast({
-          title: "Login Gagal",
-          description: "Email atau password salah",
-          variant: "destructive",
-        })
+        setError("Email atau kata sandi tidak valid")
       }
-    } catch (error) {
-      console.error("Login error:", error)
-      toast({
-        title: "Error",
-        description: "Terjadi kesalahan saat login. Silakan coba lagi.",
-        variant: "destructive",
-      })
+    } catch (err) {
+      console.error("Login error:", err)
+      setError("Terjadi kesalahan saat login. Silakan coba lagi.")
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
-      >
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold">Inventory Management System</h1>
-          <p className="mt-2 text-gray-600">PT PLN (Persero)</p>
+    <div className="flex min-h-screen flex-col bg-muted/40">
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
+        <div className="container flex h-16 items-center justify-between">
+          <Link href="/">
+            <div className="flex items-center gap-2 font-bold">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="text-primary"
+              >
+                <path d="M12 2L4 6V12C4 15.31 7.58 20 12 22C16.42 20 20 15.31 20 12V6L12 2Z" fill="currentColor" />
+                <path d="M9 12H15M9 8H15M9 16H13" stroke="black" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+              <span>PLN</span>
+            </div>
+          </Link>
+
+          <Link href="/">
+            <Button variant="ghost" size="sm">
+              Kembali Ke Beranda
+            </Button>
+          </Link>
         </div>
+      </header>
 
-        {loginMessage && (
-          <div className="mb-4 rounded-md bg-amber-50 p-4 text-amber-800 border border-amber-200">
-            <p>{loginMessage}</p>
-          </div>
-        )}
+      <main className="container flex-1 py-10">
+        <div className="mx-auto max-w-md">
+          <Card className="border-border/40 shadow-lg">
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-2xl font-bold text-center">Masuk</CardTitle>
+              <CardDescription className="text-center">
+                Masukkan email dan kata sandi Anda untuk mengakses sistem
+              </CardDescription>
+            </CardHeader>
+            <form onSubmit={handleSubmit}>
+              <CardContent className="space-y-4">
+                {error && (
+                  <div className="rounded-md bg-destructive/15 p-3 text-center text-sm text-destructive">{error}</div>
+                )}
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Login</CardTitle>
-            <CardDescription>Masuk ke akun Anda untuk mengakses sistem</CardDescription>
-          </CardHeader>
-          <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="nama@pln.co.id"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
+                {message && (
+                  <div className="rounded-md bg-blue-500/15 p-3 text-center text-sm text-blue-500">{message}</div>
+                )}
+
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="nama@contoh.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password">Kata Sandi</Label>
+                  </div>
                   <Input
                     id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
+                    type="password"
+                    placeholder="Masukkan kata sandi Anda"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    disabled={isLoading}
                   />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
                 </div>
-              </div>
-            </CardContent>
-            <CardFooter className="flex flex-col space-y-4">
-              <Button type="submit" className="w-full transition-all hover:scale-105" disabled={loading}>
-                {loading ? (
-                  <>
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ repeat: Number.POSITIVE_INFINITY, duration: 1, ease: "linear" }}
-                      className="mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full"
-                    />
-                    Logging in...
-                  </>
-                ) : (
-                  <>
-                    <LogIn className="mr-2 h-4 w-4" />
-                    Login
-                  </>
-                )}
-              </Button>
-              <div className="flex flex-col space-y-2 text-center text-sm">
-                <div>
+              </CardContent>
+              <CardFooter className="flex flex-col space-y-4">
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Masuk...
+                    </>
+                  ) : (
+                    "Masuk"
+                  )}
+                </Button>
+
+                <div className="text-center text-sm text-muted-foreground">
                   Belum punya akun?{" "}
-                  <Link href="/register">
-                    <Button variant="link" className="p-0 h-auto font-semibold text-primary">
-                      Daftar sekarang
-                    </Button>
+                  <Link href="/register" className="text-primary hover:underline">
+                    Daftar
                   </Link>
                 </div>
-                <div>
-                  <Link href="/login-options">
-                    <Button variant="link" className="p-0 h-auto font-semibold text-primary">
-                      Kembali Ke Beranda
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            </CardFooter>
-          </form>
-        </Card>
-      </motion.div>
+              </CardFooter>
+            </form>
+          </Card>
+        </div>
+      </main>
+
+      <footer className="border-t py-6">
+        <div className="container flex flex-col items-center justify-between gap-4 md:flex-row">
+          <div className="flex items-center gap-2 font-bold">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="text-primary"
+            >
+              <path d="M12 2L4 6V12C4 15.31 7.58 20 12 22C16.42 20 20 15.31 20 12V6L12 2Z" fill="currentColor" />
+              <path d="M9 12H15M9 8H15M9 16H13" stroke="black" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+            <span>PLN</span>
+          </div>
+          <p className="text-center text-sm text-muted-foreground md:text-left">
+            © 2025 PLN Indonesia. Hak Cipta Dilindungi.
+          </p>
+        </div>
+      </footer>
     </div>
   )
 }
