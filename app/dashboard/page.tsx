@@ -115,7 +115,7 @@ export default function DashboardPage() {
                   >
                     Peminjaman Aktif
                   </Button>
-                  <Button
+                  {/* <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setShowClearData(!showClearData)}
@@ -123,7 +123,7 @@ export default function DashboardPage() {
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
                     Hapus Data
-                  </Button>
+                  </Button> */}
                 </>
               )}
               {/* Debug button - only visible in development */}
@@ -189,7 +189,7 @@ export default function DashboardPage() {
                         >
                           Peminjaman Aktif
                         </Button>
-                        <Button
+                        {/* <Button
                           variant="outline"
                           onClick={() => {
                             setShowClearData(!showClearData)
@@ -199,7 +199,7 @@ export default function DashboardPage() {
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Hapus Data
-                        </Button>
+                        </Button> */}
                       </>
                     )}
                     <Button variant="ghost" onClick={handleProfileClick} className="w-full justify-start">
